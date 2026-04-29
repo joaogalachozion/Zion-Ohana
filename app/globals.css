@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --zion-dark: #002624;
+  --zion-deep: #00312B;
+  --zion-navy: #1F2A44;
+  --zion-mint: #C5FFCE;
+  --zion-orange: #FE5000;
+}
+
+body {
+  background-color: #f4f6f9;
+  color: #002624;
+}
+
+.scrollbar-thin::-webkit-scrollbar { width: 6px; height: 6px; }
+.scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
+.scrollbar-thin::-webkit-scrollbar-thumb { background: #002624; border-radius: 3px; }
