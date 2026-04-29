@@ -117,7 +117,7 @@ export default function Lancamentos() {
           <select value={filterPeriodo} onChange={e => setFilterPeriodo(e.target.value)}
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm">
             <option value="">Todos</option>
-            {[...new Set(rows.map(r=>r.periodo))].sort().map(p => <option key={p}>{p}</option>)}
+            {Array.from(new Set(rows.map(r=>r.periodo))).sort().map(p => <option key={p}>{p}</option>)}
           </select>
         </div>
         <div>
