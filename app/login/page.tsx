@@ -23,8 +23,8 @@ export default function Login() {
       return;
     }
 
-    router.push('/');
-    router.refresh();
+    // Força redirecionamento completo (não SPA)
+    window.location.href = '/';
   }
 
   return (
