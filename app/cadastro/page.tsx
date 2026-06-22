@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Check, Loader2, Upload, Building2 } from 'lucide-react';
+import { Check, Loader2, Building2 } from 'lucide-react';
 
 const MINT = '#C5FFCE', TEAL = '#002624', HEADER = '#00312B', LARANJA = '#FE5000';
 
@@ -30,7 +30,6 @@ async function nextIgrejaId(): Promise<string> {
 
 export default function CadastroPublico() {
   const [form, setForm] = useState<Form>(EMPTY);
-  const [contrato, setContrato] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
@@ -61,20 +60,10 @@ export default function CadastroPublico() {
 
       // 2) cria a igreja
       const igrejaId = await nextIgrejaId();
-      let linkContrato = '';
-      if (contrato) {
-        const ext = contrato.name.split('.').pop();
-        const path = `${igrejaId}/contrato.${ext}`;
-        const { error: eUp } = await supabase.storage.from('contratos')
-          .upload(path, contrato, { upsert: true });
-        if (!eUp) {
-          linkContrato = supabase.storage.from('contratos').getPublicUrl(path).data.publicUrl;
-        }
-      }
       const { error: e2 } = await supabase.from('igrejas').insert([{
         id: igrejaId, nome: form.nomeIgreja, cidade: form.cidade, estado: form.estado,
         pais: form.pais, pastor: form.nomePastor, tel_pastor: form.telefone,
-        status: '⚠️ Revisão', link_contrato: linkContrato,
+        status: '⚠️ Revisão', link_contrato: '',
         data_nascimento_pastor: form.dataNascimento || null,
         origem_cadastro: 'auto-cadastro',
       }]);
@@ -167,15 +156,6 @@ export default function CadastroPublico() {
               <Field label="Estado"><input value={form.estado} onChange={f('estado')} className={inp} /></Field>
               <Field label="País"><input value={form.pais} onChange={f('pais')} className={inp} /></Field>
             </div>
-            <Field label="Contrato assinado (PDF ou imagem)">
-              <label className="flex items-center gap-2 border border-dashed border-gray-300 rounded-lg px-3 py-2.5 text-sm cursor-pointer hover:bg-gray-50"
-                style={{ color: contrato ? TEAL : '#9ca3af' }}>
-                <Upload size={16} />
-                {contrato ? contrato.name : 'Selecionar arquivo'}
-                <input type="file" accept=".pdf,image/*" className="hidden"
-                  onChange={e => setContrato(e.target.files?.[0] || null)} />
-              </label>
-            </Field>
           </Section>
 
           <Section title="🔐 Acesso">
