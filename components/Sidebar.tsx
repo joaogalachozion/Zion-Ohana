@@ -1,21 +1,27 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, List, Building2, FileText, Users, LogOut, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, List, Building2, FileText, Users, LogOut, TrendingUp, User, HeartHandshake } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const nav = [
+const navAdmin = [
   { href: '/',            label: 'Dashboard',   icon: LayoutDashboard },
   { href: '/lancamentos', label: 'Lançamentos', icon: List },
-  { href: '/cadastro',    label: 'Igrejas',     icon: Building2 },
+  { href: '/igrejas',     label: 'Igrejas',     icon: Building2 },
   { href: '/relatorios',  label: 'Relatórios',  icon: FileText },
   { href: '/forecast',    label: 'Forecast',    icon: TrendingUp },
   { href: '/usuarios',    label: 'Usuários',    icon: Users },
 ];
 
-export default function Sidebar() {
+const navPastor = [
+  { href: '/painel',         label: 'Meu Perfil',     icon: User },
+  { href: '/painel/doacoes', label: 'Minhas Doações', icon: HeartHandshake },
+];
+
+export default function Sidebar({ tipo = 'admin' }: { tipo?: 'admin' | 'pastor' }) {
   const path = usePathname();
   const router = useRouter();
+  const nav = tipo === 'pastor' ? navPastor : navAdmin;
 
   async function handleLogout() {
     await supabase.auth.signOut();

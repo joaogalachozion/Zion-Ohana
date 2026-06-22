@@ -23,6 +23,19 @@ export interface Igreja {
   pais_endereco?: string;
 }
 
+export interface Pastor {
+  id?: string;
+  usuario_id?: string;
+  igreja_id?: string;
+  nome: string;
+  data_nascimento?: string;
+  telefone?: string;
+  email_corporativo?: string;
+  telefone_secretaria?: string;
+  token_membro?: string;
+  created_at?: string;
+}
+
 export interface Lancamento {
   id?: number;
   mes: string;
