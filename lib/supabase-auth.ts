@@ -28,6 +28,7 @@ export type Perfil = {
   email: string;
   tipo: 'admin' | 'pastor';
   igreja_id: string | null;
+  senha_provisoria: boolean;
 };
 
 // Lê o papel do usuário logado a partir da tabela `usuarios`.
@@ -37,7 +38,7 @@ export async function getPerfil(): Promise<Perfil | null> {
   if (!user) return null;
   const { data } = await supabase
     .from('usuarios')
-    .select('tipo, igreja_id')
+    .select('tipo, igreja_id, senha_provisoria')
     .eq('id', user.id)
     .maybeSingle();
   return {
@@ -45,5 +46,6 @@ export async function getPerfil(): Promise<Perfil | null> {
     email: user.email || '',
     tipo: (data?.tipo as 'admin' | 'pastor') || 'admin',
     igreja_id: data?.igreja_id ?? null,
+    senha_provisoria: data?.senha_provisoria ?? false,
   };
 }
