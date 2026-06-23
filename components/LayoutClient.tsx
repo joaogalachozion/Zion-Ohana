@@ -15,6 +15,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   const pub = isPublic(path);
   const [checking, setChecking] = useState(!pub);
   const [tipo, setTipo] = useState<'admin' | 'pastor'>('admin');
+  const [bare, setBare] = useState(false); // tela cheia (sem sidebar) p/ troca de senha
 
   useEffect(() => {
     if (pub) return;
@@ -28,7 +29,17 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
       const role = perfil?.tipo || 'admin';
       setTipo(role);
 
-      // Gating por papel
+      // 1) Senha provisória: força troca antes de qualquer outra coisa
+      if (perfil?.senha_provisoria) {
+        if (path !== '/trocar-senha') { router.replace('/trocar-senha'); return; }
+        setBare(true); setChecking(false); return;
+      }
+      if (path === '/trocar-senha') {
+        router.replace(role === 'pastor' ? '/painel' : '/');
+        return;
+      }
+
+      // 2) Gating por papel
       if (role === 'pastor' && !path.startsWith('/painel')) {
         router.replace('/painel');
         return;
@@ -37,6 +48,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
         router.replace('/');
         return;
       }
+      setBare(false);
       setChecking(false);
     });
 
@@ -62,6 +74,10 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
         </div>
       </div>
     );
+  }
+
+  if (bare) {
+    return <>{children}</>;
   }
 
   return (
