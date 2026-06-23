@@ -14,7 +14,7 @@ function PixInner() {
   const [restante, setRestante] = useState(15 * 60); // 15 minutos
 
   useEffect(() => {
-    if (restante <= 0) { router.replace('/painel/doacoes'); return; }
+    if (restante <= 0) { router.replace('/painel'); return; }
     const t = setInterval(() => setRestante(s => s - 1), 1000);
     return () => clearInterval(t);
   }, [restante, router]);
@@ -55,7 +55,7 @@ function PixInner() {
             </span>
           </div>
 
-          <button onClick={() => router.replace('/painel/doacoes')}
+          <button onClick={() => router.replace('/painel')}
             className="mt-5 w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 text-white"
             style={{ background: TEAL }}>
             <Home size={16} /> Voltar ao início
