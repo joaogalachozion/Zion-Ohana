@@ -48,7 +48,8 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
         router.replace('/');
         return;
       }
-      setBare(false);
+      // Tela do PIX é focada (sem sidebar)
+      setBare(path === '/painel/pix');
       setChecking(false);
     });
 
