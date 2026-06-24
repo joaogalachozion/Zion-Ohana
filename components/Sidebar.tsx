@@ -1,12 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, List, Building2, FileText, Users, LogOut, TrendingUp, User, HeartHandshake } from 'lucide-react';
+import { LayoutDashboard, List, Building2, FileText, Users, LogOut, TrendingUp, User, HeartHandshake, BadgeCheck } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
 const navAdmin = [
   { href: '/',            label: 'Dashboard',   icon: LayoutDashboard },
   { href: '/lancamentos', label: 'Lançamentos', icon: List },
+  { href: '/confirmacoes', label: 'Confirmações', icon: BadgeCheck },
   { href: '/igrejas',     label: 'Igrejas',     icon: Building2 },
   { href: '/relatorios',  label: 'Relatórios',  icon: FileText },
   { href: '/forecast',    label: 'Forecast',    icon: TrendingUp },

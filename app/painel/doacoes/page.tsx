@@ -1,8 +1,10 @@
 'use client';
 import { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { getPerfil } from '@/lib/supabase-auth';
 import type { Lancamento } from '@/lib/types';
+import { Plus } from 'lucide-react';
 
 const TEAL = '#002624', MINT = '#C5FFCE', LARANJA = '#FE5000';
 const brl = (n: number) => 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -31,9 +33,16 @@ export default function MinhasDoacoes() {
 
   return (
     <div className="max-w-4xl space-y-5">
-      <div>
-        <h1 className="text-2xl font-bold" style={{ color: TEAL }}>Minhas Doações</h1>
-        <p className="text-sm text-gray-500">Histórico de DPS (Dízimo do Pastor Sênior) e OF (Ohana Fee)</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: TEAL }}>Minhas Doações</h1>
+          <p className="text-sm text-gray-500">Histórico de DPS (Dízimo do Pastor Sênior) e OF (Ohana Fee)</p>
+        </div>
+        <Link href="/painel/nova-doacao"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white whitespace-nowrap hover:opacity-90"
+          style={{ background: LARANJA }}>
+          <Plus size={16} /> Nova Doação
+        </Link>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -58,13 +67,20 @@ export default function MinhasDoacoes() {
             )}
             {lans.map((l, i) => {
               const dps = Number(l.dps) || 0, of = Number(l.of) || 0;
+              const pendente = l.status === '⏳ Pendente';
               return (
-                <tr key={l.id ?? i} className="border-t border-gray-100">
+                <tr key={l.id ?? i} className="border-t border-gray-100"
+                  style={{ background: pendente ? '#FFF8EC' : undefined }}>
                   <td className="px-4 py-2.5 font-medium" style={{ color: TEAL }}>{l.periodo}</td>
                   <td className="px-4 py-2.5" style={{ color: dps > 0 ? TEAL : '#cbd5d1' }}>{brl(dps)}</td>
                   <td className="px-4 py-2.5" style={{ color: of > 0 ? TEAL : '#cbd5d1' }}>{brl(of)}</td>
                   <td className="px-4 py-2.5 font-semibold" style={{ color: TEAL }}>{brl(dps + of)}</td>
-                  <td className="px-4 py-2.5 text-xs">{l.status}</td>
+                  <td className="px-4 py-2.5 text-xs">
+                    <span className="px-2 py-0.5 rounded-full font-medium"
+                      style={{ background: pendente ? '#FFE3C2' : '#D4EDDA', color: pendente ? '#8a4b12' : '#1F7A3A' }}>
+                      {l.status}
+                    </span>
+                  </td>
                 </tr>
               );
             })}
