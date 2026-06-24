@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     const KEY = process.env.RESEND_API_KEY;
     const ADMIN = process.env.ADMIN_EMAIL || 'ohana@zionchurch.org.br';
-    const FROM = process.env.EMAIL_FROM || 'Zion Ohana <onboarding@resend.dev>';
+    const FROM = process.env.EMAIL_FROM || 'Zion Ohana <ohana@zionchurch.org.br>';
 
     if (!KEY) {
       return NextResponse.json({ error: 'RESEND_API_KEY ausente no ambiente' }, { status: 200 });
