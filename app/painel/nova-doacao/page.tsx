@@ -45,13 +45,15 @@ export default function NovaDoacao() {
         try {
           const { data: ig } = await supabase.from('igrejas')
             .select('nome, pastor').eq('id', perfil.igreja_id).maybeSingle();
-          await supabase.functions.invoke('enviar-recibo-doacao', {
-            body: {
+          await fetch('/api/recibo-doacao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
               igreja: ig?.nome || perfil.igreja_id,
               pastorNome: ig?.pastor || '',
               pastorEmail: perfil.email,
               tipo, valor: v, data,
-            },
+            }),
           });
         } catch { /* ignora falha de e-mail */ }
       })();
