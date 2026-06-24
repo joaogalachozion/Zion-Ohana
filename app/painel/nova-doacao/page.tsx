@@ -39,6 +39,23 @@ export default function NovaDoacao() {
       };
       const { error: e1 } = await supabase.from('lancamentos').insert([lanc]);
       if (e1) throw new Error(e1.message);
+
+      // dispara o recibo por e-mail (fire-and-forget — nunca bloqueia o fluxo do PIX)
+      (async () => {
+        try {
+          const { data: ig } = await supabase.from('igrejas')
+            .select('nome, pastor').eq('id', perfil.igreja_id).maybeSingle();
+          await supabase.functions.invoke('enviar-recibo-doacao', {
+            body: {
+              igreja: ig?.nome || perfil.igreja_id,
+              pastorNome: ig?.pastor || '',
+              pastorEmail: perfil.email,
+              tipo, valor: v, data,
+            },
+          });
+        } catch { /* ignora falha de e-mail */ }
+      })();
+
       // vai para a tela do PIX (simulação — nada é feito de fato com o pagamento)
       router.push(`/painel/pix?valor=${v}&tipo=${tipo}`);
     } catch (err: any) {
