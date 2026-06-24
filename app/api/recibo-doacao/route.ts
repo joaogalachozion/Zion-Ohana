@@ -1,15 +1,4 @@
-// Edge Function: envia recibo/agradecimento de doação via Resend.
-// Secrets necessários (Supabase → Edge Functions → Secrets):
-//   RESEND_API_KEY  (obrigatório)
-//   ADMIN_EMAIL     (e-mail administrativo que recebe a cópia)
-//   EMAIL_FROM      (opcional; ex.: "Zion Ohana <doacoes@zionchurch.org.br>")
-// Chamada pelo app após registrar a doação (fire-and-forget).
-
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { NextResponse } from 'next/server';
 
 const brl = (n: number) =>
   'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -18,32 +7,26 @@ const brl = (n: number) =>
 const isEmailReal = (e?: string) =>
   !!e && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) && !e.toLowerCase().endsWith('@zion-ohana.com');
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: CORS });
-
+export async function POST(req: Request) {
   try {
     const { igreja, pastorNome, pastorEmail, tipo, valor, data } = await req.json();
 
-    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-    const ADMIN_EMAIL = Deno.env.get('ADMIN_EMAIL');
-    const FROM = Deno.env.get('EMAIL_FROM') || 'Zion Ohana <onboarding@resend.dev>';
+    const KEY = process.env.RESEND_API_KEY;
+    const ADMIN = process.env.ADMIN_EMAIL || 'ohana@zionchurch.org.br';
+    const FROM = process.env.EMAIL_FROM || 'Zion Ohana <onboarding@resend.dev>';
 
-    if (!RESEND_API_KEY) {
-      return new Response(JSON.stringify({ error: 'RESEND_API_KEY não configurado' }),
-        { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    if (!KEY) {
+      return NextResponse.json({ error: 'RESEND_API_KEY ausente no ambiente' }, { status: 200 });
     }
+
+    const to: string[] = [];
+    if (isEmailReal(pastorEmail)) to.push(pastorEmail);
+    if (ADMIN) to.push(ADMIN);
+    if (to.length === 0) return NextResponse.json({ skipped: 'sem destinatário válido' });
 
     const tipoLabel = tipo === 'DPS' ? 'DPS · Dízimo do Pastor Sênior' : 'OF · Ohana Fee';
     const valorFmt = brl(valor);
     const dataFmt = data ? new Date(data + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
-
-    const to: string[] = [];
-    if (isEmailReal(pastorEmail)) to.push(pastorEmail);
-    if (ADMIN_EMAIL) to.push(ADMIN_EMAIL);
-    if (to.length === 0) {
-      return new Response(JSON.stringify({ skipped: 'sem destinatário válido' }),
-        { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
-    }
 
     const html = `
       <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;color:#15302c">
@@ -72,7 +55,7 @@ Deno.serve(async (req) => {
 
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      headers: { Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         from: FROM, to,
         subject: `Doação recebida — ${igreja || 'Rede Ohana'} · ${valorFmt}`,
@@ -80,10 +63,8 @@ Deno.serve(async (req) => {
       }),
     });
     const out = await r.json();
-    return new Response(JSON.stringify({ ok: r.ok, result: out }),
-      { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    return NextResponse.json({ ok: r.ok, result: out });
   } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }),
-      { status: 200, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    return NextResponse.json({ error: String(e) }, { status: 200 });
   }
-});
+}
