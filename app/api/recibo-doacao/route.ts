@@ -1,3 +1,4 @@
+// Recibo de doação por e-mail via Resend (RESEND_API_KEY no ambiente do Vercel).
 import { NextResponse } from 'next/server';
 
 const brl = (n: number) =>
