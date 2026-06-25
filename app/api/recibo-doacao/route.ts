@@ -1,5 +1,13 @@
-// Recibo de doação por e-mail via Resend (RESEND_API_KEY no ambiente do Vercel).
+// Recibo de doação por e-mail via SMTP do Gmail (conta Google Workspace ohana@zionchurch.org.br).
+// Não precisa de verificação de domínio — basta uma "senha de app" do Google.
+// Variáveis no Vercel:
+//   SMTP_USER  = ohana@zionchurch.org.br
+//   SMTP_PASS  = senha de app de 16 caracteres (myaccount.google.com/apppasswords)
+//   ADMIN_EMAIL (opcional) = e-mail que recebe a cópia (padrão: SMTP_USER)
 import { NextResponse } from 'next/server';
+import nodemailer from 'nodemailer';
+
+export const runtime = 'nodejs';
 
 const brl = (n: number) =>
   'R$ ' + Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -12,12 +20,12 @@ export async function POST(req: Request) {
   try {
     const { igreja, pastorNome, pastorEmail, tipo, valor, data } = await req.json();
 
-    const KEY = process.env.RESEND_API_KEY;
-    const ADMIN = process.env.ADMIN_EMAIL || 'ohana@zionchurch.org.br';
-    const FROM = process.env.EMAIL_FROM || 'Zion Ohana <ohana@zionchurch.org.br>';
+    const USER = process.env.SMTP_USER;
+    const PASS = process.env.SMTP_PASS;
+    const ADMIN = process.env.ADMIN_EMAIL || USER;
 
-    if (!KEY) {
-      return NextResponse.json({ error: 'RESEND_API_KEY ausente no ambiente' }, { status: 200 });
+    if (!USER || !PASS) {
+      return NextResponse.json({ error: 'SMTP_USER/SMTP_PASS ausentes no ambiente' }, { status: 200 });
     }
 
     const to: string[] = [];
@@ -54,18 +62,22 @@ export async function POST(req: Request) {
         </div>
       </div>`;
 
-    const r = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: FROM, to,
-        subject: `Doação recebida — ${igreja || 'Rede Ohana'} · ${valorFmt}`,
-        html,
-      }),
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: { user: USER, pass: PASS },
     });
-    const out = await r.json();
-    return NextResponse.json({ ok: r.ok, result: out });
+
+    const info = await transporter.sendMail({
+      from: `Zion Ohana <${USER}>`,
+      to,
+      subject: `Doação recebida — ${igreja || 'Rede Ohana'} · ${valorFmt}`,
+      html,
+    });
+
+    return NextResponse.json({ ok: true, id: info.messageId, to });
   } catch (e) {
-    return NextResponse.json({ error: String(e) }, { status: 200 });
+    return NextResponse.json({ ok: false, error: String(e) }, { status: 200 });
   }
 }
