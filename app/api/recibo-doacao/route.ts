@@ -1,9 +1,12 @@
-// Recibo de doação por e-mail via SMTP do Gmail (conta Google Workspace ohana@zionchurch.org.br).
-// Não precisa de verificação de domínio — basta uma "senha de app" do Google.
+// Recibo de doação por e-mail via SMTP (provedor configurável — Brevo, Gmail, etc.).
+// Não precisa de verificação de domínio quando o remetente é verificado no provedor.
 // Variáveis no Vercel:
-//   SMTP_USER  = ohana@zionchurch.org.br
-//   SMTP_PASS  = senha de app de 16 caracteres (myaccount.google.com/apppasswords)
-//   ADMIN_EMAIL (opcional) = e-mail que recebe a cópia (padrão: SMTP_USER)
+//   SMTP_HOST  = ex.: smtp-relay.brevo.com   (padrão: smtp.gmail.com)
+//   SMTP_PORT  = ex.: 587                      (padrão: 465)
+//   SMTP_USER  = login SMTP do provedor
+//   SMTP_PASS  = chave/senha SMTP do provedor
+//   EMAIL_FROM = ohana@zionchurch.org.br       (remetente verificado)
+//   ADMIN_EMAIL (opcional) = cópia (padrão: EMAIL_FROM)
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
@@ -20,9 +23,12 @@ export async function POST(req: Request) {
   try {
     const { igreja, pastorNome, pastorEmail, tipo, valor, data } = await req.json();
 
+    const HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const PORT = Number(process.env.SMTP_PORT || 465);
     const USER = process.env.SMTP_USER;
     const PASS = process.env.SMTP_PASS;
-    const ADMIN = process.env.ADMIN_EMAIL || USER;
+    const FROM = process.env.EMAIL_FROM || (USER ? `Zion Ohana <${USER}>` : '');
+    const ADMIN = process.env.ADMIN_EMAIL || process.env.EMAIL_FROM || 'ohana@zionchurch.org.br';
 
     if (!USER || !PASS) {
       return NextResponse.json({ error: 'SMTP_USER/SMTP_PASS ausentes no ambiente' }, { status: 200 });
@@ -63,14 +69,14 @@ export async function POST(req: Request) {
       </div>`;
 
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      host: HOST,
+      port: PORT,
+      secure: PORT === 465,
       auth: { user: USER, pass: PASS },
     });
 
     const info = await transporter.sendMail({
-      from: `Zion Ohana <${USER}>`,
+      from: FROM || `Zion Ohana <${USER}>`,
       to,
       subject: `Doação recebida — ${igreja || 'Rede Ohana'} · ${valorFmt}`,
       html,
