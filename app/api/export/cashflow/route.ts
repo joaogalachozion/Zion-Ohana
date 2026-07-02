@@ -39,3 +39,5 @@ export async function GET(req: Request) {
 
   return NextResponse.json({ count: rows.length, data: rows });
 }
+
+// deploy: aplicar EXPORT_TOKEN no ambiente
