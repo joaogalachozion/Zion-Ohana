@@ -35,6 +35,13 @@ export default function TrocarSenha() {
     }
   }
 
+  // Voltar ao início sem trocar a senha (não fica preso no primeiro acesso)
+  async function voltar() {
+    try { sessionStorage.setItem('ohana_pular_troca', '1'); } catch {}
+    const perfil = await getPerfil();
+    window.location.href = perfil?.tipo === 'pastor' ? '/painel' : '/';
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: TEAL }}>
       <div className="w-full max-w-sm">
@@ -69,6 +76,10 @@ export default function TrocarSenha() {
               {saving ? 'Salvando...' : 'Salvar e entrar'}
             </button>
           </form>
+          <button onClick={voltar} disabled={saving}
+            className="w-full mt-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+            Voltar ao início
+          </button>
         </div>
       </div>
     </div>

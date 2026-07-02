@@ -29,12 +29,14 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
       const role = perfil?.tipo || 'admin';
       setTipo(role);
 
-      // 1) Senha provisória: força troca antes de qualquer outra coisa
+      // 1) Senha provisória: prompt no primeiro acesso, mas com escapatória
+      // (o botão "Voltar ao início" grava ohana_pular_troca na sessão)
+      const pulou = typeof window !== 'undefined' && sessionStorage.getItem('ohana_pular_troca') === '1';
       if (perfil?.senha_provisoria) {
-        if (path !== '/trocar-senha') { router.replace('/trocar-senha'); return; }
-        setBare(true); setChecking(false); return;
-      }
-      if (path === '/trocar-senha') {
+        if (path === '/trocar-senha') { setBare(true); setChecking(false); return; }
+        if (!pulou) { router.replace('/trocar-senha'); return; }
+        // pulou: segue para o gating normal de papel abaixo
+      } else if (path === '/trocar-senha') {
         router.replace(role === 'pastor' ? '/painel' : '/');
         return;
       }
